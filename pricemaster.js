@@ -538,7 +538,7 @@ class PriceMaster {
 			JSON Response:
 			[
 				{
-					"message": "Hey Thad, here's your quote for 725 letters, no bleed, folded on 60# stock."
+					"message": "Hey Gary, here's your quote for 725 letters, no bleed, folded on 60# stock."
 				},
 				{
 					"#productType": "Printed",
@@ -585,7 +585,7 @@ class PriceMaster {
 			JSON Response:
 			[
 				{
-					"message": "Here are the uncoated cover options Thad."
+					"message": "Here are the uncoated cover options Craig."
 				},
 				{},
 				{
@@ -597,10 +597,8 @@ class PriceMaster {
 			`;
 
 		let messages = getPreviousMessages();
-		console.log('messages', messages);
 		let systemMessage = {"role": "system", "content": generateOpenAIRequest};
-		console.log('systemMessage', systemMessage);
-		// check if messages is a string and if jso json parse it
+		// check if messages is a string and if so json parse it
 		if (typeof messages === 'string') {
 			messages = JSON.parse(messages);
 		}
@@ -617,25 +615,21 @@ class PriceMaster {
 		// let model = "gpt-4-0125-preview";
 		let image = await didTheyUploadAnImage();
 		if (image) {
-			console.log('image')
-			// prompt.push({"role": "user", "content": {"type":"image_url" , "image_url":{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"}}});
 			prompt.push({"role": "user", "content": [{"type": "text", "text": userRequest}, {"type":"image_url" , "image_url":{"url": image}}]});
 		} else {
 			console.log('no image')
 		}
 
 
-		// fetch('https://api.openai.com/v1/chat/completions', {
-		fetch('https://internal2.ps-az-int.us/api/ai-estimator', {
+		fetch('https://some-internal-server.com/estimate', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': 'Basic aW50ZXJuYWwyOmZpcDk4MiQ0eTV0eXBoJXdocmc5'
+				'Authorization': 'Basic some-authorization-key'
 			},
 			body: JSON.stringify({
 				messages: messages,
 				model: model
-				// system: generateOpenAIRequest
 		})
 		}).then(response => response.json())
 		.then(data => {
@@ -648,7 +642,6 @@ class PriceMaster {
 			let test = data.choices[0].message.content;
 			console.log('data', test);
 			// strip all ` from the response
-			// let dataJson = data.content[0].text.replace(/`/g, '');
 			let dataJson = data.choices[0].message.content.replace(/`/g, '');
 			// and remove json if it is the first 4 characters
 			if (dataJson.substring(0, 4) === 'json') {
@@ -660,7 +653,6 @@ class PriceMaster {
 				addMessage(dataJson, false);
 				updateTheDom(dataJson[1]);
 				addRLHF();
-				// if dataJson[2]
 				if (dataJson[2]) {
 					updateTheResponse(dataJson[2]);
 				} else {
@@ -711,11 +703,11 @@ class PriceMaster {
 		}
 
 		function sendRating(rating, reason, chat) {
-			fetch('https://internal2.ps-az-int.us/api/ai-estimator-rlhf', {
+			fetch('https://some-internal-server.com/rlhf', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': 'Basic aW50ZXJuYWwyOmZpcDk4MiQ0eTV0eXBoJXdocmc5'
+					'Authorization': 'Basic some-authorization-key'
 				},
 				body: JSON.stringify({
 					rating: rating,
@@ -1025,14 +1017,6 @@ class PriceMaster {
 					attempts++;
 					await delay(1000);
 				  }
-				// } else if (weirdLinkClicks.includes(key)) {
-				// 	if (value !== false && value !== 'false') {
-				// 		while (!success && attempts < 1) {
-				// 			success = await updateWeirdLinkClicks(key, value);
-				// 			attempts++;
-				// 			await delay(3000);
-				// 		}
-				// 	}
 				} else if (straitClick.includes(key)) {
 					while (!success && attempts < 1) {
 						success = await justClickElement(key, value);
@@ -1048,7 +1032,7 @@ class PriceMaster {
 				}
 			  }
 		  
-				runEstimate(); // You might want to call this after all updates are done
+				runEstimate(); 
 				// show the request button again
 				let requestQuote = document.querySelector('#requestQuote');
 				updateContainer.style.display = 'none';
@@ -1102,12 +1086,9 @@ class PriceMaster {
 			let textEl = document.querySelector(key);
 			textEl.disabled = false;
 			if (textEl) {
-				console.log('textEl exists')
 				if (key == '#productDesc') {
-					console.log('is in productDesc');
 					let lock = document.querySelector('#PrDesLock');
 					if (lock && lock.classList.contains('lock')) {
-						console.log('clicking the lock');
 						lock.click();
 					}
 					textEl.value = value;
@@ -1116,19 +1097,14 @@ class PriceMaster {
 					textEl.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
 					// again
 					textEl.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
-					console.log('both events,,,,, done');
 
 				} else if (key == '#sheets') {
-					console.log('is in sheets');
 					let sheets = document.querySelector('#sheets');
 					if (sheets) {
 						sheets.value = value;
 						sheets.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
 					}
 				} else {
-					console.log('updateing', key)
-					console.log('here is the element', textEl)
-					console.log('here is the original value', textEl.value)
 					textEl.value = value;
 					textEl.focus();
 					delay(200);
@@ -1136,8 +1112,6 @@ class PriceMaster {
 					delay(200);
 					//dispatch a tab press
 					textEl.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab'}));
-					console.log('dispatched the tab')
-					console.log('here is the new value', textEl.value)
 				}
 				return true;
 			} else {
@@ -1166,51 +1140,20 @@ class PriceMaster {
 		}
 
 		function getPreviousMessages() {
-			// get the last 6 messages (both user and ai) in the chat window and if there is a dataset config on it get that too and concatenate them into a string like a dialogue
-			// console.log('getting previous messages');
-			// let chatWindow = document.querySelector('#chatWindow');
-			// let messages = chatWindow.querySelectorAll('div');
-			// // remove the elements that have .delete-message class
-			// let count = 0;
-			// let messageArray = [];
-			// console.log('messages', messages);
-			// console.log('messages.length', messages.length);
-			// if (messages.length < 4) {
-			// 	console.log('no messages')
-			// 	return messageArray;
-			// }
-			// for (let i = messages.length - 1; i >= 0; i--) {
-			// 	if (count === 12) {
-			// 		break;
-			// 	}
-			// 	let messObj = {};
-			// 	let message = messages[i];
-			// 	if ((message.classList.contains('user-message') || message.classList.contains('ai-message')) && !message.classList.contains('delete-message')) {
-			// 		messObj.role = message.classList.contains('user-message') ? 'user' : 'assistant';
-			// 		messObj.content = message.dataset.config ? JSON.parse(message.dataset.config) : message.textContent;
-			// 		messageArray.push(messObj);
-			// 		count++;
-			// 	}
-			// }
-			// return messageArray;
-
 			let chatHolder = document.querySelector('#chatHolder');
 			if (!chatHolder || !chatHolder.dataset.chat) {
 				return [];
 			}
-			console.log('getting the chat', chatHolder.dataset.chat)
 			return JSON.parse(chatHolder.dataset.chat);
 		}
 
 		function addMessage(message, isUser, isWaiting = false) {
-			console.log('adding message', message, isUser, isWaiting)
 			try {
 				let chatHolder = document.querySelector('#chatHolder');
 				if (!chatHolder) {
 					chatHolder = document.createElement('div');
 					chatHolder.id = 'chatHolder';
 					document.body.appendChild(chatHolder);
-
 				}
 				let chatJSON = chatHolder.dataset.chat;
 				// check if chatJSON is valid json
@@ -1246,7 +1189,6 @@ class PriceMaster {
 					}
 				} else {
 					if (message) {
-						console.log('messages exist', message)
 						newMessage.role = 'user';
 						newMessage.content = message;
 						chatJSON.push(newMessage);
@@ -1280,8 +1222,6 @@ class PriceMaster {
 		}
 
 		async function updateSelectElement(key, value) {
-			// console.log('is in select elements')
-			// updateSelectElement(key, value);
 			let selectEl = document.querySelector(key);
 
 			if (selectEl) {
@@ -1317,23 +1257,14 @@ class PriceMaster {
 								"#paperType": "#ui-id-8",
 								"#paperID": "#ui-id-9",
 							}
-							// console.log('uiList', uiList);
 							if (uiList[key]) {
-								// console.log('uiList[key]', uiList[key]);
 								let visualList = document.querySelector(uiList[key]);
 								if (visualList) {
-									// console.log('visualList', visualList);
 									let liElements = visualList.querySelectorAll('li');
 									liElements.forEach((li) => {
 										let anch = li.querySelector('a');
-										// console.log('anch', anch.textContent);
-										// console.log('optionText', optionText);
 										if (anch.textContent === optionText) {
-											console.log('clicking the anchor');
 											anch.click();
-											// return true;
-											// need to break the await
-											console.log('returning true');
 											return new Promise((resolve) => {
 												resolve(true);
 											});
@@ -1356,12 +1287,9 @@ class PriceMaster {
 			let productID = document.querySelector('#productID');
 			let paperType = document.querySelector('#paperType');
 
-			// dataJson ? setCategory(dataJson) : setToNone(category);
 			setToNone(category);
 			setToNone(productID);
 			setToNone(paperType);
-
-			// runEstimate();
 
 			updateMessage.textContent = 'Options cleared.';
 
@@ -1396,7 +1324,6 @@ class PriceMaster {
 }
 
 class PrepPriceMaster {
-	// just find #quoteLineItems button.jqButton.btnAdd and updatethe onclick to call the function thi.popNewItemNewAI
 
 	constructor() {
 		this.updateButton();
@@ -1410,9 +1337,7 @@ class PrepPriceMaster {
 			newButton.classList = button.classList;
 			newButton.value = "NEW";
 			newButton.innerText = "Job";
-			console.log('removing button')
 			button.remove();
-			// now parent prepend the new button
 			parent.prepend(newButton);
 			newButton.addEventListener('click', this.popNewItemNewAI);
 		}
@@ -1433,7 +1358,7 @@ class PrepPriceMaster {
 }
 
 let url = window.location.href;
-if (url.includes('printingsolutions.mypresswise.com/s2/jobs.php?quoteID')) {
+if (url.includes('/s2/jobs.php?quoteID')) {
 	// get the query param user
 	let params = new URLSearchParams(window.location.search);
 	let userName = params.get('user');
@@ -1445,6 +1370,6 @@ if (url.includes('printingsolutions.mypresswise.com/s2/jobs.php?quoteID')) {
 }
 
 
-if (url.includes('printingsolutions.mypresswise.com/s/cost.php?quoteID')) {
+if (url.includes('/s/cost.php?quoteID')) {
 	let prepPriceMaster = new PrepPriceMaster();
 }
